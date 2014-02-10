@@ -30,5 +30,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <%@ taglib prefix="rs" uri="http://www.jasig.org/resource-server" %>
+<script src="<c:url value="/js/underscore-min.js"/>" type="text/javascript"></script>
 
 <portlet:defineObjects/>

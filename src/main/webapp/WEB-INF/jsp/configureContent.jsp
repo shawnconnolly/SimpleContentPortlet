@@ -60,7 +60,16 @@
     <div class="save-configuration-button portlet-button-group buttons">
         <input class="portlet-form-button portlet-button portlet-button-primary" type="submit" value="<spring:message code="configurationForm.save"/>"/>
     </div>
-
+    <div class="announcements-portlet-row" id="${n}attachment_add_section" style="display:none;">
+        <label>
+            <spring:message code="configurationForm.images"/>
+            <a style="text-decoration:none;" href="javascript:upAttachments.show(${n}.addAttachmentCallback);">
+                <img src="<c:url value="/icons/add.png"/>" border="0" height="16" width="16" style="vertical-align:middle;"/>
+            </a>
+        </label>
+        <div id="${n}attachments" class="announcements-portlet-col">
+        </div>
+    </div>
     <p>
         <a href="${ cancelUrl }">
             <spring:message code="configurationForm.return"/>
@@ -70,10 +79,11 @@
 </form:form>
     
 <script type="text/javascript">
-<rs:compressJs>
     var ${n} = ${n} || {};
     ${n}.jQuery = jQuery.noConflict(${includeJQuery});
     ${n}.fluid = fluid;
+    ${n}._ = _.noConflict(); // assign underscore to this namespace
+
     <c:if test="${includeJQuery}">fluid = null; fluid_1_2 = null;</c:if>
     
     ${n}.scriptCapableViewAccessor = function (element) {
@@ -91,6 +101,7 @@
     
     ${n}.jQuery(function(){
         var $ = ${n}.jQuery;
+        var _ = ${n}._;
         var fluid = ${n}.fluid;
         var cleanContent = ${cleanContent};
 
@@ -105,7 +116,30 @@
                 $(".save-configuration-button").show();
                 return false;
             });
-        }; 
+        };
+
+        // Display and use the attachments feature only if it's present
+        if(typeof upAttachments != "undefined")
+        {
+            ${n}.addAttachmentCallback = function(result) {
+                ${n}.addAttachment(result);
+                upAttachments.hide();
+            };
+            ${n}.addAttachment = function(result) {
+                _.templateSettings.variable = "attachment";
+                var template = $('#${n}template-attachment-add-item').html();
+                var compiled = _.template(template, result);
+                $("#${n}attachments").append(compiled);
+                var addedElement = $("#${n}attachments").find('.attachment-item:last');
+                addedElement.find('.remove-button').click(function() {
+                    addedElement.remove();
+                });
+            };
+            <c:forEach items="${announcement.attachments}" var="attachment">
+                ${n}.addAttachment(${attachment});
+            </c:forEach>
+            $("#${n}attachment_add_section").show();
+        }
 
         $(document).ready(function(){
             // Create an CKEditor 3.x-based Rich Inline Edit component.
@@ -143,5 +177,15 @@
         });
         
     });
-</rs:compressJs>
+</script>
+
+<script type="text/template" id="${n}template-attachment-add-item">
+    <div id="${n}attachment_add_${"<%="} attachment.id ${"%>"}" class="attachment-item">
+        <a class="remove-button" href="javascript:void(0);">
+            <img id="attachment-delete" src="<c:url value="/icons/delete.png"/>" border="0" style="height:14px;width:14px;vertical-align:middle;margin-right:5px;cursor:pointer;"/>
+        </a>
+        <span>${"<%="} attachment.filename ${"%>"}</span>
+        <input type="hidden" name="attachments" value='${"<%="} JSON.stringify(attachment) ${"%>"}'/>
+
+    </div>
 </script>
